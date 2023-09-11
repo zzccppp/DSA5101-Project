@@ -3,6 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 import torch
+from tqdm import tqdm
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class BiClassfication(torch.nn.Module):
     def __init__(self, input_dim, output_dim, hidden_dim=100):
@@ -17,51 +21,77 @@ class BiClassfication(torch.nn.Module):
         x = torch.sigmoid(x)
         return x
 
+
 def load_data():
     train_data = pd.read_csv("./data/traininingdata.txt", sep=";")
     test_data = pd.read_csv("./data/testdata.txt", sep=";")
 
-    label_encoders = {}
+    # 删除某些列
+    filtered_column_name = []
+    train_data = train_data.drop(filtered_column_name, axis=1)
+    test_data = test_data.drop(filtered_column_name, axis=1)
 
-    for column in train_data.columns:
-        if train_data[column].dtype == "object":
-            le = LabelEncoder()
-            train_data[column] = le.fit_transform(train_data[column])
-            label_encoders[column] = le
+    # 保存原始的y值，因为我们只想对特征进行one-hot编码，而不是目标变量
+    y = train_data.iloc[:, -1].values
+    y_test = test_data.iloc[:, -1].values
 
-    for column in test_data.columns:
-        if test_data[column].dtype == "object":
-            le = label_encoders[column]
-            test_data[column] = le.transform(test_data[column])
+    # 将目标变量转换为0和1
+    le = LabelEncoder()
+    y = le.fit_transform(y)
+    y_test = le.transform(y_test)
 
-    train_data = train_data.values
-    train_data = train_data.astype(np.float32)
-    X = train_data[:, :-1]
-    y = train_data[:, -1]
-    X = (X - X.mean(axis=0)) / X.std(axis=0)
+    # 删除目标变量列，以便我们可以只对特征进行one-hot编码
+    train_data = train_data.iloc[:, :-1]
+    test_data = test_data.iloc[:, :-1]
 
-    test_data = test_data.values
-    test_data = test_data.astype(np.float32)
-    X_test = test_data[:, :-1]
-    # normalize data
-    X_test = (X_test - X_test.mean(axis=0)) / X_test.std(axis=0)
-    y_test = test_data[:, -1]
+    # 使用pandas的get_dummies函数来进行one-hot编码
+    train_data = pd.get_dummies(train_data, drop_first=True)
+    test_data = pd.get_dummies(test_data, drop_first=True)
+
+    # 转换为numpy数组并进行类型转换
+    train_data = train_data.values.astype(np.float32)
+    test_data = test_data.values.astype(np.float32)
+
+    # 提取特征
+    X = train_data
+    X_test = test_data
 
     return X, y, X_test, y_test
 
 
 if __name__ == "__main__":
     X, y, X_test, y_test = load_data()
-    
-    model = BiClassfication(X.shape[1], 1)
+
+    X = torch.from_numpy(X).to(torch.float32).to(device)
+    y = torch.from_numpy(y).to(torch.float32).to(device)
+    y = y.reshape(-1, 1)
+
+    model = BiClassfication(X.shape[1], 1).to(device)
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    
-    for epoch in range(1500):
+
+    for epoch in tqdm(range(300), desc="Training"):
         y_pred = model(X)
         loss = criterion(y_pred, y)
-        print("epoch: ", epoch, " loss: ", loss.item())
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
+    model.eval()
+    X_test = torch.from_numpy(X_test).to(torch.float32).to(device)
+    y_test = torch.from_numpy(y_test).to(torch.float32).to(device)
+    y_test = y_test.reshape(-1, 1)
+    y_pred = model(X_test)
+    y_pred = torch.round(y_pred)
+
+    # 计算Accuracy, Precision, Recall, F1
+    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+    y_test = y_test.cpu().numpy()
+    y_pred = y_pred.detach().cpu().numpy()
+
+    print("Accuracy: ", accuracy_score(y_test, y_pred))
+    print("Precision: ", precision_score(y_test, y_pred))
+    print("Recall: ", recall_score(y_test, y_pred))
+    print("F1: ", f1_score(y_test, y_pred))

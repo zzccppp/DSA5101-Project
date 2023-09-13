@@ -16,10 +16,11 @@ from sklearn.metrics import (
 
 config = {
     "learning_rate": 0.001,
-    "epochs": 1500,
+    "epochs": 15000,
     "enable_wandb": True,
     "save_model": True,
     "check_frequency": 100,
+    "filtered_column_name": []
 }
 
 run = wandb.init(project="DSA5101_Proj", config=config)
@@ -29,18 +30,20 @@ torch.manual_seed(0)
 np.random.seed(0)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("mps" if torch.has_mps else "cpu")
+# device = torch.device("mps" if torch.has_mps else "cpu")
 
 
 class BiClassfication(torch.nn.Module):
-    def __init__(self, input_dim, output_dim, hidden_dim=100):
+    def __init__(self, input_dim, output_dim, hidden_dim=256):
         super().__init__()
         self.linear = torch.nn.Linear(input_dim, hidden_dim)
         self.linear2 = torch.nn.Linear(hidden_dim, output_dim)
+        self.dropout = torch.nn.Dropout(p=0.5)
 
     def forward(self, x):
         x = self.linear(x)
         x = torch.relu(x)
+        x = self.dropout(x)
         x = self.linear2(x)
         x = torch.sigmoid(x)
         return x
@@ -51,7 +54,7 @@ def load_data():
     test_data = pd.read_csv("./data/testdata.txt", sep=";")
 
     # 删除某些列
-    filtered_column_name = ["day", "month"]
+    filtered_column_name = config["filtered_column_name"]
     train_data = train_data.drop(filtered_column_name, axis=1)
     test_data = test_data.drop(filtered_column_name, axis=1)
 
@@ -138,7 +141,7 @@ if __name__ == "__main__":
             precision, recall, f1, f1_macro, f1_micro, accuracy, mcc, roc_auc = test(
                 y_test, y_pred
             )
-            
+
             if config["enable_wandb"]:
                 wandb.log(
                     {

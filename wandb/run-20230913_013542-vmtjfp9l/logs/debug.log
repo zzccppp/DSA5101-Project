@@ -1,0 +1,26 @@
+2023-09-13 01:35:42,990 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Current SDK version is 0.15.10
+2023-09-13 01:35:42,990 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Configure stats pid to 35096
+2023-09-13 01:35:42,990 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Loading settings from C:\Users\Zzdirty\.config\wandb\settings
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Loading settings from C:\Users\Zzdirty\Nutstore\1\Course\NUS\DSA5101\Proj\wandb\settings
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Applying setup settings: {'_disable_service': False}
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'main.py', 'program': 'c:\\Users\\Zzdirty\\Nutstore\\1\\Course\\NUS\\DSA5101\\Proj\\main.py'}
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_init.py:_log_setup():524] Logging user logs to C:\Users\Zzdirty\Nutstore\1\Course\NUS\DSA5101\Proj\wandb\run-20230913_013542-vmtjfp9l\logs\debug.log
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_init.py:_log_setup():525] Logging internal logs to C:\Users\Zzdirty\Nutstore\1\Course\NUS\DSA5101\Proj\wandb\run-20230913_013542-vmtjfp9l\logs\debug-internal.log
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_init.py:init():564] calling init triggers
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_init.py:init():571] wandb.init called with sweep_config: {}
+config: {'learning_rate': 0.001, 'epochs': 1500, 'enable_wandb': True, 'save_model': True, 'check_frequency': 100}
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_init.py:init():614] starting backend
+2023-09-13 01:35:42,991 INFO    MainThread:35096 [wandb_init.py:init():618] setting up manager
+2023-09-13 01:35:42,994 INFO    MainThread:35096 [backend.py:_multiprocessing_setup():105] multiprocessing start_methods=spawn, using: spawn
+2023-09-13 01:35:42,999 INFO    MainThread:35096 [wandb_init.py:init():624] backend started and connected
+2023-09-13 01:35:43,004 INFO    MainThread:35096 [wandb_init.py:init():715] updated telemetry
+2023-09-13 01:35:43,061 INFO    MainThread:35096 [wandb_init.py:init():748] communicating run to backend with 90.0 second timeout
+2023-09-13 01:35:43,763 INFO    MainThread:35096 [wandb_run.py:_on_init():2220] communicating current version
+2023-09-13 01:35:44,819 INFO    MainThread:35096 [wandb_run.py:_on_init():2229] got version response 
+2023-09-13 01:35:44,819 INFO    MainThread:35096 [wandb_init.py:init():799] starting run threads in backend
+2023-09-13 01:35:45,075 INFO    MainThread:35096 [wandb_run.py:_console_start():2199] atexit reg
+2023-09-13 01:35:45,076 INFO    MainThread:35096 [wandb_run.py:_redirect():2054] redirect: wrap_raw
+2023-09-13 01:35:45,076 INFO    MainThread:35096 [wandb_run.py:_redirect():2119] Wrapping output streams.
+2023-09-13 01:35:45,076 INFO    MainThread:35096 [wandb_run.py:_redirect():2144] Redirects installed.
+2023-09-13 01:35:45,077 INFO    MainThread:35096 [wandb_init.py:init():840] run started, returning control to user process

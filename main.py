@@ -4,8 +4,32 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 import torch
 from tqdm import tqdm
+import wandb
+from sklearn.metrics import (
+    accuracy_score,
+    matthews_corrcoef,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+)
+
+config = {
+    "learning_rate": 0.001,
+    "epochs": 1500,
+    "enable_wandb": True,
+    "save_model": True,
+    "check_frequency": 100,
+}
+
+run = wandb.init(project="DSA5101_Proj", config=config)
+
+
+torch.manual_seed(0)
+np.random.seed(0)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("mps" if torch.has_mps else "cpu")
 
 
 class BiClassfication(torch.nn.Module):
@@ -27,7 +51,7 @@ def load_data():
     test_data = pd.read_csv("./data/testdata.txt", sep=";")
 
     # 删除某些列
-    filtered_column_name = []
+    filtered_column_name = ["day", "month"]
     train_data = train_data.drop(filtered_column_name, axis=1)
     test_data = test_data.drop(filtered_column_name, axis=1)
 
@@ -56,7 +80,26 @@ def load_data():
     X = train_data
     X_test = test_data
 
+    X = (X - X.mean(axis=0)) / X.std(axis=0)
+    X_test = (X_test - X_test.mean(axis=0)) / X_test.std(axis=0)
+
     return X, y, X_test, y_test
+
+
+def test(y_test, y_pred):
+    y_test = y_test.cpu().numpy()
+    y_pred = y_pred.detach().cpu().numpy()
+
+    return (
+        precision_score(y_test, y_pred),
+        recall_score(y_test, y_pred),
+        f1_score(y_test, y_pred),
+        f1_score(y_test, y_pred, average="macro"),
+        f1_score(y_test, y_pred, average="micro"),
+        accuracy_score(y_test, y_pred),
+        matthews_corrcoef(y_test, y_pred),
+        roc_auc_score(y_test, y_pred),
+    )
 
 
 if __name__ == "__main__":
@@ -66,27 +109,74 @@ if __name__ == "__main__":
     y = torch.from_numpy(y).to(torch.float32).to(device)
     y = y.reshape(-1, 1)
 
+    X_test = torch.from_numpy(X_test).to(torch.float32).to(device)
+    y_test = torch.from_numpy(y_test).to(torch.float32).to(device)
+    y_test = y_test.reshape(-1, 1)
+
     model = BiClassfication(X.shape[1], 1).to(device)
     criterion = torch.nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+    epochs = config["epochs"]
 
-    for epoch in tqdm(range(300), desc="Training"):
+    for epoch in tqdm(range(epochs + 1), desc="Training"):
         y_pred = model(X)
         loss = criterion(y_pred, y)
-
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-    model.eval()
-    X_test = torch.from_numpy(X_test).to(torch.float32).to(device)
-    y_test = torch.from_numpy(y_test).to(torch.float32).to(device)
-    y_test = y_test.reshape(-1, 1)
-    y_pred = model(X_test)
-    y_pred = torch.round(y_pred)
+        if config["enable_wandb"]:
+            wandb.log({"loss": loss.item()})
 
-    # 计算Accuracy, Precision, Recall, F1
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+        if epoch % config["check_frequency"] == 0:
+            # test the model
+            model.eval()
+            y_output = model(X_test)
+            threshold = 0.5
+            y_pred = torch.where(y_output > threshold, 1, 0)
+
+            precision, recall, f1, f1_macro, f1_micro, accuracy, mcc, roc_auc = test(
+                y_test, y_pred
+            )
+            
+            if config["enable_wandb"]:
+                wandb.log(
+                    {
+                        "precision": precision,
+                        "recall": recall,
+                        "f1": f1,
+                        "f1_macro": f1_macro,
+                        "f1_micro": f1_micro,
+                        "accuracy": accuracy,
+                        "mcc": mcc,
+                        "roc_auc": roc_auc,
+                    }
+                )
+
+        model.train()
+
+    # save the model
+    torch.save(model.state_dict(), f"./model/model_{epochs}.pth")
+
+    model.eval()
+
+    y_output = model(X_test)
+
+    # draw the Precision/Recall curve
+    from sklearn.metrics import precision_recall_curve
+    import matplotlib.pyplot as plt
+
+    precision, recall, thresholds = precision_recall_curve(
+        y_test.cpu().numpy(), y_output.cpu().detach().numpy()
+    )
+    plt.plot(recall, precision, marker=".")
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.grid()
+    plt.show()
+
+    threshold = 0.5
+    y_pred = torch.where(y_output > threshold, 1, 0)
 
     y_test = y_test.cpu().numpy()
     y_pred = y_pred.detach().cpu().numpy()

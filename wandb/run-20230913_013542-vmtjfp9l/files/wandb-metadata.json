@@ -1,0 +1,53 @@
+{
+    "os": "Windows-10-10.0.22621-SP0",
+    "python": "3.9.13",
+    "heartbeatAt": "2023-09-12T17:35:44.931632",
+    "startedAt": "2023-09-12T17:35:42.982832",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "c:\\Users\\Zzdirty\\Nutstore\\1\\Course\\NUS\\DSA5101\\Proj\\main.py",
+    "codePathLocal": "main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/zzccppp/DSA5101-Project.git",
+        "commit": "2a5ea05cc3a782aff6712db0968bf2a9bb0c33d0"
+    },
+    "email": "muztaga2@gmail.com",
+    "root": "C:/Users/Zzdirty/Nutstore/1/Course/NUS/DSA5101/Proj",
+    "host": "Zzdirty",
+    "username": "Zzdirty",
+    "executable": "C:\\Users\\Zzdirty\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\proj-dsa5101-ISSJI_1x-py3.9\\Scripts\\python.exe",
+    "cpu_count": 16,
+    "cpu_count_logical": 32,
+    "cpu_freq": {
+        "current": 2501.0,
+        "min": 0.0,
+        "max": 2501.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2501.0,
+            "min": 0.0,
+            "max": 2501.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 951.6445274353027,
+            "used": 511.7555618286133
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+            "memory_total": 8585740288
+        }
+    ],
+    "memory": {
+        "total": 63.68801498413086
+    }
+}
